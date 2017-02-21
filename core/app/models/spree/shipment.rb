@@ -6,6 +6,7 @@ module Spree
     has_many :adjustments, as: :adjustable, inverse_of: :adjustable, dependent: :delete_all
     has_many :inventory_units, dependent: :destroy, inverse_of: :shipment
     has_many :shipping_rates, -> { order(:cost) }, dependent: :delete_all
+    has_many :backend_shipping_rates, -> { order(:cost) }, dependent: :delete_all, class_name: 'Spree::ShippingRate'
     has_many :shipping_methods, through: :shipping_rates
     has_many :state_changes, as: :stateful
     has_many :cartons, -> { uniq }, through: :inventory_units
@@ -175,6 +176,7 @@ module Spree
       # StockEstimator.new assigment below will replace the current shipping_method
       original_shipping_method_id = shipping_method.try!(:id)
 
+      # Frontend rates
       new_rates = Spree::Config.stock.estimator_class.new.shipping_rates(to_package)
 
       # If one of the new rates matches the previously selected shipping
@@ -188,34 +190,22 @@ module Spree
       end
 
       self.shipping_rates = new_rates
-      save!
 
-      shipping_rates
-    end
+      # Backend rates
+      new_backend_rates = Spree::Config.stock.estimator_class.new.shipping_rates(to_package, false)
 
-    def refresh_backend_rates
-      return shipping_rates if shipped? || order.completed?
-      return [] unless can_get_rates?
-
-      # StockEstimator.new assigment below will replace the current shipping_method
-      original_shipping_method_id = shipping_method.try!(:id)
-
-      new_rates = Spree::Config.stock.estimator_class.new.shipping_rates(s.to_package, frontend_only = false)
-
-      # If one of the new rates matches the previously selected shipping
-      # method, select that instead of the default provided by the estimator.
-      # Otherwise, keep the default.
-      selected_rate = new_rates.detect{ |rate| rate.shipping_method_id == original_shipping_method_id }
+      selected_rate = new_backend_rates.detect{ |rate| rate.shipping_method_id == original_shipping_method_id }
       if selected_rate
-        new_rates.each do |rate|
+        new_backend_rates.each do |rate|
           rate.selected = (rate == selected_rate)
         end
       end
 
-      self.backend_shipping_rates = new_rates
+      self.backend_shipping_rates = new_backend_rates
+
       save!
 
-      backend_shipping_rates
+      shipping_rates
     end
 
     def selected_shipping_rate
@@ -373,7 +363,6 @@ module Spree
         order.contents.add(variant, quantity, { shipment: new_shipment })
 
         refresh_rates
-        refresh_backend_rates
         save!
         new_shipment.save!
       end
@@ -389,10 +378,8 @@ module Spree
         order.contents.add(variant, quantity, { shipment: shipment_to_transfer_to })
 
         refresh_rates
-        refresh_backend_rates
         save!
         shipment_to_transfer_to.refresh_rates
-        shipment_to_transfer_to.refresh_backend_rates
         shipment_to_transfer_to.save!
       end
     end
