@@ -176,8 +176,7 @@ module Spree
       # StockEstimator.new assigment below will replace the current shipping_method
       original_shipping_method_id = shipping_method.try!(:id)
 
-      # Frontend rates
-      new_rates = Spree::Config.stock.estimator_class.new.shipping_rates(to_package)
+      new_rates = Spree::Config.stock.estimator_class.new.shipping_rates(to_package, false)
 
       # If one of the new rates matches the previously selected shipping
       # method, select that instead of the default provided by the estimator.
@@ -189,19 +188,8 @@ module Spree
         end
       end
 
-      self.shipping_rates = new_rates
-
-      # Backend rates
-      new_backend_rates = Spree::Config.stock.estimator_class.new.shipping_rates(to_package, false)
-
-      selected_rate = new_backend_rates.detect{ |rate| rate.shipping_method_id == original_shipping_method_id }
-      if selected_rate
-        new_backend_rates.each do |rate|
-          rate.selected = (rate == selected_rate)
-        end
-      end
-
-      self.backend_shipping_rates = new_backend_rates
+      self.backend_shipping_rates = new_rates
+      self.shipping_rates = new_rates.select! { |rate| rate.shipping_method.frontend? }
 
       save!
 
