@@ -6,6 +6,7 @@ module Spree
     has_many :adjustments, as: :adjustable, inverse_of: :adjustable, dependent: :delete_all
     has_many :inventory_units, dependent: :destroy, inverse_of: :shipment
     has_many :shipping_rates, -> { order(:cost) }, dependent: :delete_all
+    has_many :backend_shipping_rates, -> { order(:cost) }, dependent: :delete_all, class_name: 'Spree::ShippingRate'
     has_many :shipping_methods, through: :shipping_rates
     has_many :state_changes, as: :stateful
     has_many :cartons, -> { uniq }, through: :inventory_units
@@ -175,7 +176,7 @@ module Spree
       # StockEstimator.new assigment below will replace the current shipping_method
       original_shipping_method_id = shipping_method.try!(:id)
 
-      new_rates = Spree::Config.stock.estimator_class.new.shipping_rates(to_package)
+      new_rates = Spree::Config.stock.estimator_class.new.shipping_rates(to_package, false)
 
       # If one of the new rates matches the previously selected shipping
       # method, select that instead of the default provided by the estimator.
@@ -187,7 +188,9 @@ module Spree
         end
       end
 
-      self.shipping_rates = new_rates
+      self.backend_shipping_rates = new_rates
+      self.shipping_rates = new_rates.select! { |rate| rate.shipping_method.frontend? }
+
       save!
 
       shipping_rates
