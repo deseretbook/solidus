@@ -18,21 +18,21 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      select2 "Item total", from: "Add rule of type"
+      select "Item total", from: "Add rule of type"
       within('#rule_fields') { click_button "Add" }
 
       find('[id$=_preferred_amount]').set(30)
       within('#rule_fields') { click_button "Update" }
 
-      select2 "Create whole-order adjustment", from: "Add action of type"
+      select "Create whole-order adjustment", from: "Add action of type"
       within('#action_fields') { click_button "Add" }
-      select2 "Flat Rate", from: "Calculator"
+      select "Flat Rate", from: "Base Calculator"
       within('#actions_container') { click_button "Update" }
 
       within('.calculator-fields') { fill_in "Amount", with: 5 }
       within('#actions_container') { click_button "Update" }
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
       expect(promotion.codes.first.value).to eq("order")
 
       first_rule = promotion.rules.first
@@ -54,14 +54,14 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      select2 "Create whole-order adjustment", from: "Add action of type"
+      select "Create whole-order adjustment", from: "Add action of type"
       within('#action_fields') { click_button "Add" }
-      select2 "Flat Rate", from: "Calculator"
+      select "Flat Rate", from: "Base Calculator"
       within('#actions_container') { click_button "Update" }
       within('#action_fields') { fill_in "Amount", with: "5" }
       within('#actions_container') { click_button "Update" }
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
       expect(promotion.usage_limit).to eq(1)
       expect(promotion.codes.first.value).to eq("single_use")
 
@@ -78,20 +78,20 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      select2 "Item total", from: "Add rule of type"
+      select "Item total", from: "Add rule of type"
       within('#rule_fields') { click_button "Add" }
 
       find('[id$=_preferred_amount]').set(30)
       within('#rule_fields') { click_button "Update" }
 
-      select2 "Create whole-order adjustment", from: "Add action of type"
+      select "Create whole-order adjustment", from: "Add action of type"
       within('#action_fields') { click_button "Add" }
-      select2 "Flat Percent", from: "Calculator"
+      select "Flat Percent", from: "Base Calculator"
       within('#actions_container') { click_button "Update" }
       within('.calculator-fields') { fill_in "Flat Percent", with: "10" }
       within('#actions_container') { click_button "Update" }
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
       expect(promotion.codes.first).to be_nil
 
       first_rule = promotion.rules.first
@@ -113,19 +113,19 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      select2 "Product(s)", from: "Add rule of type"
+      select "Product(s)", from: "Add rule of type"
       within("#rule_fields") { click_button "Add" }
       select2_search "RoR Mug", from: "Choose products"
       within('#rule_fields') { click_button "Update" }
 
-      select2 "Create per-line-item adjustment", from: "Add action of type"
+      select "Create per-line-item adjustment", from: "Add action of type"
       within('#action_fields') { click_button "Add" }
-      select2 "Percent Per Item", from: "Calculator"
+      select "Percent Per Item", from: "Base Calculator"
       within('#actions_container') { click_button "Update" }
       within('.calculator-fields') { fill_in "Percent", with: "10" }
       within('#actions_container') { click_button "Update" }
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
       expect(promotion.codes.first).to be_nil
 
       first_rule = promotion.rules.first
@@ -145,16 +145,16 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      select2 "Item total", from: "Add rule of type"
+      select "Item total", from: "Add rule of type"
       within('#rule_fields') { click_button "Add" }
       find('[id$=_preferred_amount]').set(30)
       within('#rule_fields') { click_button "Update" }
 
-      select2 "Free shipping", from: "Add action of type"
+      select "Free shipping", from: "Add action of type"
       within('#action_fields') { click_button "Add" }
       expect(page).to have_content('Makes all shipments for the order free')
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
       expect(promotion.codes).to be_empty
       expect(promotion.rules.first).to be_a(Spree::Promotion::Rules::ItemTotal)
       expect(promotion.actions.first).to be_a(Spree::Promotion::Actions::FreeShipping)
@@ -166,7 +166,7 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
       expect(promotion).to be_apply_automatically
       expect(promotion.path).to be_nil
       expect(promotion.codes).to be_empty
@@ -180,7 +180,7 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
       expect(promotion.path).to eq("content/cvv")
       expect(promotion).not_to be_apply_automatically
       expect(promotion.codes).to be_empty
@@ -195,7 +195,7 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
       expect(promotion.path).to be_nil
       expect(promotion).not_to be_apply_automatically
       expect(promotion.rules).to be_blank
@@ -209,19 +209,19 @@ describe "Promotion Adjustments", type: :feature, js: true do
       click_button "Create"
       expect(page).to have_title("Promotion - Promotions")
 
-      select2 "Item total", from: "Add rule of type"
+      select "Item total", from: "Add rule of type"
       within('#rule_fields') { click_button "Add" }
       find('[id$=_preferred_amount]').set(50)
       within('#rule_fields') { click_button "Update" }
 
-      select2 "Create whole-order adjustment", from: "Add action of type"
+      select "Create whole-order adjustment", from: "Add action of type"
       within('#action_fields') { click_button "Add" }
-      select2 "Flat Rate", from: "Calculator"
+      select "Flat Rate", from: "Base Calculator"
       within('#actions_container') { click_button "Update" }
       within('.calculator-fields') { fill_in "Amount", with: "5" }
       within('#actions_container') { click_button "Update" }
 
-      promotion = Spree::Promotion.find_by_name("Promotion")
+      promotion = Spree::Promotion.find_by(name: "Promotion")
 
       first_rule = promotion.rules.first
       expect(first_rule.class).to eq(Spree::Promotion::Rules::ItemTotal)

@@ -1,8 +1,8 @@
-require 'spec_helper'
+require 'rails_helper'
 
 module Spree
   module Stock
-    describe Estimator, type: :model do
+    RSpec.describe Estimator, type: :model do
       let(:shipping_rate) { 4.00 }
       let!(:shipping_method) { create(:shipping_method, cost: shipping_rate, currency: currency) }
       let(:package) do

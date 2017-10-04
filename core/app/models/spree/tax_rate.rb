@@ -11,12 +11,12 @@ module Spree
     belongs_to :zone, class_name: "Spree::Zone", inverse_of: :tax_rates
 
     has_many :tax_rate_tax_categories,
-      class_name: Spree::TaxRateTaxCategory,
+      class_name: 'Spree::TaxRateTaxCategory',
       dependent: :destroy,
       inverse_of: :tax_rate
     has_many :tax_categories,
       through: :tax_rate_tax_categories,
-      class_name: Spree::TaxCategory,
+      class_name: 'Spree::TaxCategory',
       inverse_of: :tax_rates
 
     has_many :adjustments, as: :source
@@ -38,7 +38,7 @@ module Spree
     # For instance:
     #
     # Zones:
-    #   - Spain (default tax zone)
+    #   - Spain
     #   - France
     #
     # Tax rates: (note: amounts below do not actually reflect real VAT rates)
@@ -82,20 +82,23 @@ module Spree
     def adjust(_order_tax_zone, item)
       amount = compute_amount(item)
 
-      included = included_in_price && amount > 0
-
       item.adjustments.create!(
         source: self,
         amount: amount,
         order_id: item.order_id,
         label: adjustment_label(amount),
-        included: included
+        included: included_in_price
       )
     end
 
     # This method is used by Adjustment#update to recalculate the cost.
     def compute_amount(item)
       calculator.compute(item)
+    end
+
+    def active?
+      (starts_at.nil? || starts_at < Time.current) &&
+        (expires_at.nil? || expires_at > Time.current)
     end
 
     def adjustment_label(amount)
@@ -106,6 +109,16 @@ module Spree
         amount: amount_for_adjustment_label
       )
     end
+
+    def tax_category=(category)
+      self.tax_categories = [category]
+    end
+
+    def tax_category
+      tax_categories[0]
+    end
+
+    deprecate :tax_category => :tax_categories, :tax_category= => :tax_categories=, deprecator: Spree::Deprecation
 
     private
 
@@ -118,7 +131,6 @@ module Spree
 
     def translation_key(amount)
       key = included_in_price? ? "vat" : "sales_tax"
-      key += "_refund" if amount < 0
       key += "_with_rate" if show_rate_in_label?
       key.to_sym
     end

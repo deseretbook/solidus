@@ -10,7 +10,7 @@
 //= require solidus_admin/underscore
 //= require solidus_admin/backbone
 //= require solidus_admin/backbone-nested-models
-//= require solidus_admin/tether
+//= require solidus_admin/popover
 //= require solidus_admin/bootstrap
 //= require prism
 //= require spree
@@ -32,6 +32,7 @@
 //= require spree/backend/components/number_with_currency
 //= require spree/backend/components/tabs
 //= require spree/backend/components/tooltips
+//= require spree/backend/components/editable_table
 //= require spree/backend/flash
 //= require spree/backend/gateway
 //= require spree/backend/handlebars_extensions

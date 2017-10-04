@@ -4,14 +4,6 @@ module Spree
       ::Spree::StoreCredit
     end
 
-    def can_capture?(payment)
-      ['checkout', 'pending'].include?(payment.state)
-    end
-
-    def can_void?(payment)
-      payment.pending?
-    end
-
     def authorize(amount_in_cents, provided_store_credit, gateway_options = {})
       if provided_store_credit.nil?
         ActiveMerchant::Billing::Response.new(false, Spree.t('store_credit.unable_to_find'), {}, {})
@@ -72,15 +64,16 @@ module Spree
       handle_action(action, :credit, auth_code)
     end
 
-    def cancel(auth_code)
+    # @see Spree::PaymentMethod#try_void
+    def try_void(payment)
+      auth_code = payment.response_code
       store_credit_event = auth_or_capture_event(auth_code)
       store_credit = store_credit_event.try(:store_credit)
 
       if store_credit_event.nil? || store_credit.nil?
         ActiveMerchant::Billing::Response.new(false, '', {}, {})
       elsif store_credit_event.capture_action?
-        amount_in_cents = (store_credit_event.amount * 100).round
-        credit(amount_in_cents, auth_code)
+        false # payment#cancel! handles the refund
       elsif store_credit_event.authorization_action?
         void(auth_code)
       else
@@ -109,7 +102,7 @@ module Spree
 
     def handle_action(action, action_name, auth_code)
       # Find first event with provided auth_code
-      store_credit = Spree::StoreCreditEvent.find_by_authorization_code(auth_code).try(:store_credit)
+      store_credit = Spree::StoreCreditEvent.find_by(authorization_code: auth_code).try(:store_credit)
 
       if store_credit.nil?
         ActiveMerchant::Billing::Response.new(false, Spree.t('store_credit.unable_to_find_for_action', auth_code: auth_code, action: action_name), {}, {})

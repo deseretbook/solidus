@@ -1,3 +1,5 @@
+require 'spree/core/product_filters'
+
 module Spree
   class Taxon < Spree::Base
     acts_as_nested_set dependent: :destroy
@@ -11,7 +13,7 @@ module Spree
 
     before_create :set_permalink
     before_update :set_permalink
-    after_update :update_child_permalinks, if: :permalink_changed?
+    after_update :update_child_permalinks, if: :saved_change_to_permalink?
 
     validates :name, presence: true
     validates :meta_keywords, length: { maximum: 255 }
@@ -83,6 +85,19 @@ module Spree
     #   belong to this taxon
     def active_products
       products.not_deleted.available
+    end
+
+    # @return [ActiveRecord::Relation<Spree::Product>] all self and descendant products
+    def all_products
+      scope = Product.joins(:taxons)
+      scope.where(
+        spree_taxons: { id: self_and_descendants.select(:id) }
+      )
+    end
+
+    # @return [ActiveRecord::Relation<Spree::Variant>] all self and descendant variants, including master variants.
+    def all_variants
+      Variant.where(product_id: all_products.select(:id))
     end
 
     # @return [String] this taxon's ancestors names followed by its own name,

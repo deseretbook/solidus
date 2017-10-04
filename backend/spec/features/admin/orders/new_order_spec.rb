@@ -4,7 +4,7 @@ describe "New Order", type: :feature do
   include OrderFeatureHelper
 
   let!(:product) { create(:product_in_stock) }
-  let!(:state) { create(:state) }
+  let!(:state) { create(:state, state_code: 'CA') }
   let!(:store) { create(:store) }
   let!(:user) { create(:user, ship_address: create(:address), bill_address: create(:address)) }
   let!(:payment_method) { create(:check_payment_method) }
@@ -54,7 +54,7 @@ describe "New Order", type: :feature do
     click_on "Ship"
 
     within '.carton-state' do
-      expect(page).to have_content('shipped')
+      expect(page).to have_content('Shipped')
     end
   end
 
@@ -155,8 +155,8 @@ describe "New Order", type: :feature do
       click_on "Payments"
       click_on "Continue"
 
-      within(".additional-info .state") do
-        expect(page).to have_content("confirm")
+      within(".additional-info") do
+        expect(page).to have_content("Confirm")
       end
     end
   end
@@ -193,14 +193,14 @@ describe "New Order", type: :feature do
     end
   end
 
-  def fill_in_address(kind = "bill")
+  def fill_in_address
     fill_in "First Name",                with: "John 99"
     fill_in "Last Name",                 with: "Doe"
     fill_in "Street Address",            with: "100 first lane"
     fill_in "Street Address (cont'd)",   with: "#101"
     fill_in "City",                      with: "Bethesda"
     fill_in "Zip Code",                  with: "20170"
-    targetted_select2_search state.name, from: "#s2id_order_#{kind}_address_attributes_state_id"
+    select state.name, from: "State"
     fill_in "Phone",                     with: "123-456-7890"
   end
 end

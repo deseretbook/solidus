@@ -1,6 +1,6 @@
-require 'spec_helper'
+require 'rails_helper'
 
-describe Spree::Order, type: :model do
+RSpec.describe Spree::Order, type: :model do
   let(:order) { create(:order_with_line_items) }
 
   context "#next!" do
@@ -82,7 +82,9 @@ describe Spree::Order, type: :model do
     end
 
     it "should send a cancel email" do
-      order.cancel!
+      perform_enqueued_jobs do
+        order.cancel!
+      end
 
       mail = ActionMailer::Base.deliveries.last
       expect(mail.subject).to include "Cancellation"

@@ -1,8 +1,8 @@
 # encoding: utf-8
 
-require 'spec_helper'
+require 'rails_helper'
 
-describe Spree::Variant, type: :model do
+RSpec.describe Spree::Variant, type: :model do
   let!(:variant) { create(:variant) }
 
   it_behaves_like 'default_price'
@@ -16,6 +16,12 @@ describe Spree::Variant, type: :model do
     it "should validate price is 0" do
       variant.price = 0
       expect(variant).to be_valid
+    end
+
+    it "should require a product" do
+      expect(variant).to be_valid
+      variant.product = nil
+      expect(variant).to be_invalid
     end
   end
 

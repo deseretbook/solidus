@@ -80,7 +80,7 @@ module Spree
 
     after_initialize :ensure_master
 
-    after_save :run_touch_callbacks, if: :changed?
+    after_save :run_touch_callbacks, if: :saved_changes?
     after_touch :touch_taxons
 
     before_validation :normalize_slug, on: :update
@@ -104,7 +104,7 @@ module Spree
     self.whitelisted_ransackable_attributes = %w[slug]
 
     def self.ransackable_scopes(_auth_object = nil)
-      %i(with_deleted)
+      %i(with_deleted with_variant_sku_cont)
     end
 
     # @return [Boolean] true if there are any variants

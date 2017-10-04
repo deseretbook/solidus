@@ -79,6 +79,7 @@ module Spree
 
       def link_to_clone(resource, options = {})
         options[:data] = { action: 'clone' }
+        options[:method] = :post
         link_to_with_icon('copy', Spree.t(:clone), clone_object_url(resource), options)
       end
 
@@ -102,7 +103,7 @@ module Spree
         url = options[:url] || object_url(resource)
         name = options[:name] || Spree.t('actions.delete')
         confirm = options[:confirm] || Spree.t(:are_you_sure)
-        options[:class] = "delete-resource"
+        options[:class] = "#{options[:class]} delete-resource".strip
         options[:data] = { confirm: confirm, action: 'remove' }
         link_to_with_icon 'trash', name, url, options
       end
